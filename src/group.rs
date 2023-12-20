@@ -15,7 +15,7 @@ impl GroupKind {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Group {
     pub kind: GroupKind,
     pub units_count: usize,
@@ -50,16 +50,20 @@ impl Group {
         }
     }
 
-    pub fn get_effective_power(&self) -> usize {
-        self.units_count * self.attack_damage
+    pub fn get_effective_power(&self, immune_boost: usize) -> usize {
+        if self.kind == GroupKind::Immune {
+            self.units_count * (self.attack_damage + immune_boost)
+        } else {
+            self.units_count * self.attack_damage
+        }
     }
 
-    pub fn get_damage_to(&self, target: &Group) -> usize {
+    pub fn get_damage_to(&self, target: &Group, immune_boost: usize) -> usize {
         if target.immunities.contains(&self.attack_type) {
             return 0;
         }
 
-        let default_dmg = self.get_effective_power();
+        let default_dmg = self.get_effective_power(immune_boost);
         if target.weaknesses.contains(&self.attack_type) {
             return default_dmg * 2;
         }
